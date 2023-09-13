@@ -1,4 +1,4 @@
-.vscode/settings.json
-.vscode/tasks.json
-main.dSYM/Contents/Info.plist
-main.dSYM/Contents/Resources/DWARF/main
+.vscode/**
+main.dSYM/**
+.DS_Store
+
