@@ -43,7 +43,7 @@ struct JSONObject {
         } else if (value.index() == 3) {
             return std::to_string(std::get<double>(value));
         } else if (value.index() == 4) {
-            return std::get<std::string>(value);
+            return "\"" +std::get<std::string>(value) + "\"";
         } else if (value.index() == 5) {
             std::string result = "[";
             for (const JSONObject& obj : std::get<std::vector<JSONObject>>(value)) {
