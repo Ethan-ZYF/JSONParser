@@ -4,15 +4,19 @@
 #include <variant>
 #include <vector>
 
+struct JSONObject;
+using JSONList = std::vector<JSONObject>;
+using JSONDict = std::unordered_map<std::string, JSONObject>;
+
 struct JSONObject {
     std::variant<
-        std::monostate,                              // null
-        bool,                                        // true or false
-        int,                                         // integer
-        double,                                      // floating point
-        std::string,                                 // string
-        std::vector<JSONObject>,                     // array
-        std::unordered_map<std::string, JSONObject>  // object
+        std::monostate,  // null
+        bool,            // true or false
+        int,             // integer
+        double,          // floating point
+        std::string,     // string
+        JSONList,        // list
+        JSONDict         // dict
         >
         value;
 
@@ -25,14 +29,6 @@ struct JSONObject {
     JSONObject(std::vector<JSONObject> value) : value(value) {}
     JSONObject(std::unordered_map<std::string, JSONObject> value) : value(value) {}
 
-    JSONObject& operator[](int index) {
-        return std::get<std::vector<JSONObject>>(value)[index];
-    }
-
-    JSONObject& operator[](std::string key) {
-        return std::get<std::unordered_map<std::string, JSONObject>>(value)[key];
-    }
-
     std::string to_string() const {
         if (value.index() == 0) {
             return "null";
@@ -43,7 +39,7 @@ struct JSONObject {
         } else if (value.index() == 3) {
             return std::to_string(std::get<double>(value));
         } else if (value.index() == 4) {
-            return "\"" +std::get<std::string>(value) + "\"";
+            return "\"" + std::get<std::string>(value) + "\"";
         } else if (value.index() == 5) {
             std::string result = "[";
             for (const JSONObject& obj : std::get<std::vector<JSONObject>>(value)) {
@@ -68,6 +64,21 @@ struct JSONObject {
             return result;
         }
         return "";
+    }
+
+    template <class T>
+    bool is() const {
+        return std::holds_alternative<T>(value);
+    }
+
+    template <class T>
+    T const& get() const {
+        return std::get<T>(value);
+    }
+
+    template <class T>
+    T& get() {
+        return std::get<T>(value);
     }
 };
 

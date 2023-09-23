@@ -1,4 +1,5 @@
 #include <charconv>
+#include <fstream>
 #include <iostream>
 #include <optional>
 #include <regex>
@@ -133,25 +134,48 @@ std::pair<JSONObject, size_t> parse(const std::string_view json) {
         }
         // i + 1 is the length of the dict
         return std::make_pair(JSONObject(move(dict)), i);
+    } else if (json.substr(0, 4) == "true") {
+        return std::make_pair(JSONObject(true), 4);
+    } else if (json.substr(0, 5) == "false") {
+        return std::make_pair(JSONObject(false), 5);
+    } else if (json.substr(0, 4) == "null") {
+        return std::make_pair(JSONObject(std::monostate{}), 4);
     }
 
     return std::make_pair(JSONObject(), 0);
 }
 
-int main() {
-    // std::string str = "-3.14e-2";
-    // std::string str = R"({"work":996,"school":[985,211],"my_school":{"name":"UofT","rank":21}})";
-    std::string str = R"({
-        "work": 996,
-        "school": [985, 211],
-        "my_school":{
-            "name": "UofT",
-            "rank": 21
-            }
+int main(int argc, char const* argv[]) {
+    std::string json;
+    if (argc == 1) {
+        while (std::cin) {
+            std::string line;
+            std::getline(std::cin, line);
+            json += line;
         }
-    )";
-    auto [obj, len] = parse(str);
+    } else if (argc == 2) {
+        std::ifstream ifs(argv[1]);
+        if (!ifs) {
+            std::cerr << "Cannot open file: " << argv[1] << std::endl;
+            return 1;
+        }
+        while (ifs) {
+            std::string line;
+            std::getline(ifs, line);
+            json += line;
+        }
+    } else {
+        std::cerr << "Usage: " << argv[0] << " [file]" << std::endl;
+        return 1;
+    }
+    auto [obj, len] = parse(json);
+    if (len == 0) {
+        std::cerr << "Invalid JSON" << std::endl;
+        return 1;
+    }
+    // do something with obj
+    std::cout << "JSON object: " << std::endl;
     std::cout << obj.to_string() << std::endl;
-    std::cout << len << std::endl;
+    std::cout << "length: " << len << std::endl;
     return 0;
 }
